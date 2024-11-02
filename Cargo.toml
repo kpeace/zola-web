@@ -1,0 +1,13 @@
+[package]
+name = "zola-client"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2.95"
+tracing-wasm = "0.2"
+web-sys = { version = "0.3.72", features = ["Window", "Document", "HtmlElement", "Text"] }
+nostr-sdk = "0.35.0"
+wasm-bindgen-futures = "0.4"
+yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
