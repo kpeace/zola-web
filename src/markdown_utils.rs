@@ -1,3 +1,4 @@
+// Converts pandoc inline footnotes to standard foot notes
 pub fn preprocess_inline_footnotes(input: &str) -> String {
     let mut footnote_counter = 1;
     let mut output = String::new();
@@ -25,6 +26,26 @@ pub fn preprocess_inline_footnotes(input: &str) -> String {
     output.push_str("\n");
     for footnote in footnotes {
         output.push_str(&footnote);
+        output.push('\n');
+    }
+
+    output = output.trim().to_string();
+
+    output
+}
+
+pub fn remove_headers(input : &str) -> String{
+    let mut output = String::new();
+    for line in input.lines() {
+        line.starts_with("#")
+        .then(|| {
+            output.push_str(line.trim_start_matches(|c| c == '#').trim());
+        })
+        .or_else(||{
+            output.push_str(line);
+            Some(())
+        });
+
         output.push('\n');
     }
 
@@ -76,6 +97,15 @@ mod tests {
 
         let expected_txt = "# מימון מדינה ללא מסים\n\nתחשבו מה היה קורה אם ראש ממשלת ישראל היה מוציא צו: מהיום והלאה החל מהראשון לינואר עד לראשון למאי כל אזרח במדינה יעבוד למעני. המדינה תחליט במה הוא יעבוד. הכסף שהוא יכניס ילך לקופת האוצר. מהראשון למאי עד לראשון לינואר, כל עובד יוכל לעבוד באיזה עבודה שבה הוא יחפץ ולהשתמש בכסף שהוא מכניס כפי ראות עיניו[^1]\n\n\n\nרוב הסיכויים שזה לא היה עובר ללא מהומה. אנשים היו מוחים על החודשים שבהם הם צריכים לעבוד למען הממשלה.\n\n[^1]: הרעיון הזה אולי נשמע הזוי, אבל הוא בכלל לא מופרך. שיטת המיסוי הזו הייתה מקובלת מאוד בעולם העתיק.";
         let output_text = preprocess_inline_footnotes(original_txt);
+        assert_eq!(expected_txt, output_text);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_remove_headers() {
+        let original_txt = "# First header\nSome line\n## second header.\nAnother line";
+        let expected_txt = "First header\nSome line\nsecond header.\nAnother line";
+
+        let output_text = remove_headers(original_txt);
         assert_eq!(expected_txt, output_text);
     }
 }
