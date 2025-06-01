@@ -1,7 +1,7 @@
 [package]
 name = "zola-client"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
@@ -11,3 +11,8 @@ web-sys = { version = "0.3.72", features = ["Window", "Document", "HtmlElement",
 nostr-sdk = "0.35.0"
 wasm-bindgen-futures = "0.4"
 yew = { git = "https://github.com/yewstack/yew/", features = ["csr"] }
+pulldown-cmark = "0.12.2"
+gloo-console = "0.3.0"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.50"
