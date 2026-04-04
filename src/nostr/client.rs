@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::time::Duration;
 use crate::services::blog_post::BlogPost;
 use crate::nostr::client_error::ClientError;
+use crate::services::blog_context::WINDOW_SIZE;
 use gloo_console::log;
 
 #[derive(Debug)]
@@ -24,7 +25,7 @@ pub type SharedClient = Rc<NostrClient>;
 impl NostrClient {
     pub fn new() -> Result<Self, ClientError>  {
         // TODO need a way to make keys configurable
-        const PUBLIC_KEY_STR : &str = "1a15a86100f0d0472b9e679a2745be737c0a804cc773573dfa4b2d1990427d66";
+        const PUBLIC_KEY_STR : &str = "8e43961e8e488784a4046735a5b5863b39a2b51273a537aae277536fab94700c";
         let id = PublicKey::parse(PUBLIC_KEY_STR).map_err(|e| ClientError::KeyError(e))?;
         let keys = Keys::generate();
 
@@ -40,12 +41,14 @@ impl NostrClient {
     }
 
     pub async fn connect(&self) -> Result<(), ClientError> {
+        let relay = "ws://127.0.0.1:7000";
         self.client
             .add_relay("ws://127.0.0.1:7000")
             .await
             .map_err(|e| ClientError::RelayError(e))?;
 
         self.client.connect().await;
+        log!(format!("Conneces to relay: {}", relay));
 
         Ok(())
     }
@@ -55,6 +58,45 @@ impl NostrClient {
             .author(self.blog_id)
             .kind(Kind::LongFormTextNote)
             .limit(limit);
+
+        let events = self.client.fetch_events(filter, Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
+
+        log!(format!("Loaded {} events", events.len()));
+
+        Ok(events)
+    }
+
+    pub async fn load_window(&self, newer_then: Option<u64>, older_then: Option<u64>) -> Result<Events, ClientError> {
+        let limit = WINDOW_SIZE as usize;
+
+        let mut filter = Filter::new()
+            .author(self.blog_id)
+            .kind(Kind::LongFormTextNote)
+            .limit(limit);
+
+        match newer_then {
+            Some(since) => {filter = filter.since(Timestamp::from_secs(since));},
+            None => {},
+        }
+
+        match older_then {
+            Some(until) => {filter = filter.until(Timestamp::from_secs(until));},
+            None => {},
+        }
+
+        let events = self.client.fetch_events(filter, Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
+
+        log!(format!("Loaded window with {} events", events.len()));
+
+        Ok(events)
+    }
+
+    pub async fn get_post_by_identifier(&self, slug: &str) -> Result<Events, ClientError> {
+        let filter = Filter::new()
+            .author(self.blog_id)
+            .kind(Kind::LongFormTextNote)
+            .identifier(slug)
+            .limit(1);
 
         let events = self.client.fetch_events(filter, Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
 
@@ -77,7 +119,6 @@ impl NostrClient {
                     }
                 };
                 // Debug
-                log!("GOt event!");
                 let _ = tx.unbounded_send(post);
             }
         }

@@ -1,6 +1,7 @@
 use yew::prelude::*;
 use pulldown_cmark::{Options, Parser};
 use crate::services::blog_context::BlogContext;
+use crate::services::blog_post::BlogPost;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -12,8 +13,47 @@ pub fn post_page(props: &Props) -> Html {
     let ctx = use_context::<BlogContext>()
         .expect("BlogContext not found");
 
-    let posts = &(*ctx.state).posts;
-    match (*posts).iter().find(|p| p.slug == props.slug) {
+    let post = use_state(|| None::<BlogPost>);
+    let loading = use_state(|| true);
+
+    let slug = props.slug.clone();
+    let ctx_clone = ctx.clone();
+    let post_clone = post.clone();
+    let loading_clone = loading.clone();
+
+    use_effect_with(slug.clone(), move |_| {
+
+        let cached = ctx_clone.windows
+            .read()
+            .unwrap()
+            .values()
+            .flat_map(|w| w.posts.iter())
+            .find(|p| p.slug == slug)
+            .cloned();
+
+        if let Some(p) = cached {
+            post_clone.set(Some(p));
+            loading_clone.set(false);
+        } else {
+            let slug_cloned: String = slug.clone();
+
+            wasm_bindgen_futures::spawn_local(async move {
+                match ctx.get_post_by_slug(&slug_cloned).await {
+                    Some(p) => post_clone.set(Some(p)),
+                    None => (),
+                }
+
+                loading_clone.set(false);
+            });
+            ()
+        }
+    });
+
+    if *loading {
+        return html! { <div>{ "Loading..." }</div> };
+    }
+
+    match &*post {
         Some(post) => {
             let mut options = Options::empty();
             options.insert(Options::ENABLE_STRIKETHROUGH);
@@ -31,9 +71,9 @@ pub fn post_page(props: &Props) -> Html {
                 <div>{ &parsed }</div>
             </div>
             }
-        },
+        }
         None => html! {
             <div>{ "Post not found" }</div>
         }
-}
+    }
 }
