@@ -130,4 +130,37 @@ impl BlogContext {
             None => None,
         }
     }
+
+    pub fn get_newest(&self,) -> Option<u64>{
+        let guard = self.windows.read().unwrap();
+        match guard.get(&0) {
+            Some(window) => window.posts.first().and_then(|post| Some(post.created_at)),
+            None => None,
+        }
+    }
+
+    pub fn add_post(&self, new_post: BlogPost) {
+        let mut windows_guard = self.windows.write().unwrap();
+        let mut k = 0;
+
+        while let Some(window) = windows_guard.get_mut(&k) {
+            if let Some(oldest) = window.oldest_timestamp {
+                log!(format!("checking window {}. Oldest post {}. Post create_at: {}", k, oldest, new_post.created_at));
+                if new_post.created_at >= oldest {
+                    // This clones the Vec only when necessary (when Rc has multiple references)
+                    let posts = Rc::make_mut(&mut window.posts);
+
+                    let pos = posts.binary_search_by(|existing| {
+                        new_post.created_at.cmp(&existing.created_at)
+                    }).unwrap_or_else(|e| e);
+
+                    posts.insert(pos, new_post);
+                    log!(format!("new post added to window {}", k));
+
+                    return;
+                }
+            }
+            k += 1;
+        }
+    }
 }

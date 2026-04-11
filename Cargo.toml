@@ -15,6 +15,7 @@ yew-router = "0.20.0"
 pulldown-cmark = "0.12.2"
 gloo-console = "0.3.0"
 futures = "0.3.32"
+chrono = "0.4"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.64"

@@ -103,25 +103,27 @@ impl NostrClient {
         Ok(events)
     }
 
-    pub async fn subscribe_posts(&self, tx: futures::channel::mpsc::UnboundedSender<BlogPost>) {
+    pub async fn subscribe_posts(&self, since: u64, tx: futures::channel::mpsc::UnboundedSender<BlogPost>) {
+        let post_already_read_ts = Timestamp::from_secs(since);
         let filter = Filter::new()
             .author(self.blog_id)
-            .kind(Kind::LongFormTextNote);
+            .kind(Kind::LongFormTextNote)
+            .since(post_already_read_ts);
 
         // Fetch historical posts first
-        if let Ok(events) = self.client.fetch_events(filter.clone(), Duration::from_secs(10)).await {
-            for event in events {
-                let post = match BlogPost::from_event(&event) {
-                    Ok(post) => post,
-                    Err(err) => {
-                        log!(format!("Error: {}; Event: {}", err, event.as_json()));
-                        continue;
-                    }
-                };
-                // Debug
-                let _ = tx.unbounded_send(post);
-            }
-        }
+        // if let Ok(events) = self.client.fetch_events(filter.clone(), Duration::from_secs(10)).await {
+        //     for event in events {
+        //         let post = match BlogPost::from_event(&event) {
+        //             Ok(post) => post,
+        //             Err(err) => {
+        //                 log!(format!("Error: {}; Event: {}", err, event.as_json()));
+        //                 continue;
+        //             }
+        //         };
+        //         // Debug
+        //         let _ = tx.unbounded_send(post);
+        //     }
+        // }
 
         // Now subscribe for live updates
         let _ = self.client.subscribe(filter, None).await;
@@ -130,6 +132,10 @@ impl NostrClient {
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } =  notification {
+                if event.created_at <= post_already_read_ts {
+                    continue;
+                }
+
                 let post = match BlogPost::from_event(&event) {
                     Ok(post) => post,
                     Err(err) => {

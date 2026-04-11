@@ -15,8 +15,17 @@ To run the project localy
 
 
 ## Running tests
-
+`cargo install wasm-pack`
 `wasm-pack test --headless --firefox`
+
+## TODO
+The real list is endless. This is just a "short" list of things that I don't want to forget
+
+* Enable markdown in post summary
+* Support npstr long form event summary in post list
+* Enable/Disable Next/Prev button depending on if there are any posts to show
+* Handle new posts better (notification and/or auto reload first window)
+* support blog sections (main, about etc.)
 
 ## License
 Currently distributed under MIT license. This license was chosen because https://choosealicense.com/ recommended it as the most permisive license. If there is a need for an aditional license, please contact me.

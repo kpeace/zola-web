@@ -1,4 +1,3 @@
-use web_sys::window;
 use yew::prelude::*;
 use yew_router::prelude::*;
 use std::rc::Rc;
@@ -57,23 +56,20 @@ fn use_blog_context() -> BlogContext {
                 context.state.set(BlogState { current_window: 0 });
 
                 let client_clone = client.clone();
+                let newest = context.get_newest().unwrap_or_default();
+
+                // DEBUG
+                log!(format!("Newest blog: {}", newest));
 
                 wasm_bindgen_futures::spawn_local(async move {
-                    client_clone.subscribe_posts(tx).await;
+                    client_clone.subscribe_posts(newest, tx,).await;
                 });
 
                 // TODO add cache window update here
-                // while let Some(event) = rx.next().await {
-                //     let current_state = (*state).clone(); // re-read latest state
-                //     let mut posts = current_state.posts.as_ref().clone();
-
-                //     posts.push(event);
-
-                //     state.set(BlogState {
-                //         posts: Rc::new(posts),
-                //         oldest_timestamp:None
-                //     });
-                // }
+                while let Some(post) = rx.next().await {
+                    log!(format!("Got new post: {} with time: {}", post.title, post.created_at));
+                    context.add_post(post);
+                }
             });
 
             || ()
