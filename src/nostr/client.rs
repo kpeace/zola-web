@@ -23,10 +23,8 @@ impl PartialEq for NostrClient {
 pub type SharedClient = Rc<NostrClient>;
 
 impl NostrClient {
-    pub fn new() -> Result<Self, ClientError>  {
-        // TODO need a way to make keys configurable
-        const PUBLIC_KEY_STR : &str = "8e43961e8e488784a4046735a5b5863b39a2b51273a537aae277536fab94700c";
-        let id = PublicKey::parse(PUBLIC_KEY_STR).map_err(|e| ClientError::KeyError(e))?;
+    pub fn new(public_key: &str) -> Result<Self, ClientError>  {
+        let id = PublicKey::parse(public_key).map_err(|e| ClientError::KeyError(e))?;
         let keys = Keys::generate();
 
         let client = Client::builder()

@@ -2,6 +2,7 @@ use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 use crate::services::blog_post::BlogPost;
 use crate::nostr::client::NostrClient;
+use crate::services::config::AppConfig;
 use std::collections::HashMap;
 use gloo_console::log;
 use yew::prelude::*;
@@ -30,6 +31,7 @@ pub struct BlogContext {
     pub client: Rc<NostrClient>,
     pub state: UseStateHandle<BlogState>,
     pub windows: WindowCache,
+    pub config: UseStateHandle<Option<Rc<AppConfig>>>,
 }
 
 impl PartialEq for BlogContext{
