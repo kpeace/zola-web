@@ -31,7 +31,7 @@ pub struct BlogContext {
     pub client: Rc<NostrClient>,
     pub state: UseStateHandle<BlogState>,
     pub windows: WindowCache,
-    pub config: UseStateHandle<Option<Rc<AppConfig>>>,
+    pub config: Rc<AppConfig>,
 }
 
 impl PartialEq for BlogContext{

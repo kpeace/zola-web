@@ -9,19 +9,8 @@ Trunk is a tool to package wasm. There are other tools avilble (see the Yew docu
 
 `cargo install --locked trunk`
 
-To run the project localy first create a Trunk.toml file containing
-```
-[build]
-dist = "dist"
-
-# Copy config.json to the dist folder (works with both `trunk serve` and `trunk build`)
-[[hooks]]
-stage = "build"
-command = "cp"
-command_arguments = ["path/to/your/zola_blog>/config.json", "dist/config.json"]
-```
-
-The config file should be created by the [Zola app](https://github.com/kpeace/zola) and edited to fit your needs
+### Getting blog configuration
+Zola Web expects to have a config.json alongside index.html (in the same directory). This config file should be created by the [Zola app](https://github.com/kpeace/zola) and edited to fit your needs.
 
 `trunk serve --open`
 
