@@ -1,7 +1,7 @@
 use nostr_sdk::Event;
-use crate::markdown_utils::*;
 use crate::nostr::post_tags::PostTags;
 use crate::nostr::client_error::ClientError;
+use strip_markdown::strip_markdown;
 
 
 #[derive(Clone, PartialEq)]
@@ -21,7 +21,7 @@ impl BlogPost {
     fn extract_excerpt(content: &String) -> String {
         static MAX_POST_PREVIEW_SIZE : usize = 512;
         let post_slice = BlogPost::first_n_chars(&content, MAX_POST_PREVIEW_SIZE);
-        remove_headers(post_slice)
+        strip_markdown(&post_slice)
     }
 
     pub fn from_event(e: &Event) -> Result<Self, ClientError> {
