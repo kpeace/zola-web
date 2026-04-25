@@ -7,6 +7,7 @@ use crate::services::blog_post::BlogPost;
 use crate::services::blog_context::{BlogContext, BlogState, new_window_cache};
 use crate::services::config::{AppConfig, ConfigError};
 use gloo_console::log;
+use crate::components::page_layout::PageLayout;
 
 #[derive(Clone, PartialEq)]
 pub enum BlogContextState {
@@ -150,7 +151,9 @@ pub fn app() -> Html {
     html! {
         <ContextProvider<BlogContext> context={ctx}>
             <BrowserRouter>
-                <Switch<Route> render={switch} />
+                <PageLayout>
+                    <Switch<Route> render={switch} />
+                </PageLayout>
             </BrowserRouter>
         </ContextProvider<BlogContext>>
     }

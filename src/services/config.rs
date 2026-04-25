@@ -21,6 +21,7 @@ impl std::fmt::Display for ConfigError {
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct AppConfig {
     pub public_key: String,
+    pub title: String,
 }
 
 impl AppConfig {
