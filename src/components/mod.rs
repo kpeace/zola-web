@@ -2,3 +2,7 @@ pub mod post_list;
 pub mod post_page;
 pub mod post_preview;
 pub mod page_layout;
+pub mod comment_section;
+pub mod comment_tree;
+pub mod comment_node_view;
+pub mod comment_input;

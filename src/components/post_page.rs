@@ -2,6 +2,7 @@ use yew::prelude::*;
 use pulldown_cmark::{Options, Parser};
 use crate::services::blog_context::BlogContext;
 use crate::services::blog_post::BlogPost;
+use crate::components::comment_section::CommentSection;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -69,9 +70,14 @@ pub fn post_page(props: &Props) -> Html {
             <div>
                 <h1>{ &post.title }</h1>
                 <div>{ &parsed }</div>
+
+                <CommentSection
+                    post_id={post.slug.clone()}
+                    parent_id={post.slug.clone()}
+                />
             </div>
             }
-        }
+        },
         None => html! {
             <div>{ "Post not found" }</div>
         }

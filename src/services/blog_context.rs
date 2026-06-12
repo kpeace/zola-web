@@ -5,7 +5,9 @@ use crate::nostr::client::NostrClient;
 use crate::services::config::AppConfig;
 use std::collections::HashMap;
 use gloo_console::log;
+use gloo_net::websocket::events;
 use yew::prelude::*;
+use crate::services::comment::Comment;
 
 pub const WINDOW_SIZE: usize = 5;
 
@@ -109,6 +111,22 @@ impl BlogContext {
         }
     }
 
+    // pub async fn get_post_comments(&self, event_id: String, post_id: String, author_pubkey: String) -> Result<Vec<Comment>, ()> {
+    //     match self.client.get_replies(event_id, post_id, author_pubkey).await {
+    //         Ok(events) => {
+    //             events
+    //                 .into_iter()
+    //                 .filter_map(|e|{
+    //                     match  {
+
+    //                     }
+    //                 })
+    //                 .collect()
+    //         }
+    //         Err(_) => (),
+    //     }
+    // }
+
     pub fn insert_window(&self, window_id: i32, posts: Vec<BlogPost>) {
         let mut sorted_posts = posts.clone();
         sorted_posts.sort_by(|a, b| b.created_at.cmp(&a.created_at));
@@ -164,5 +182,9 @@ impl BlogContext {
             }
             k += 1;
         }
+    }
+
+    pub async fn publish_comment(&self, comment: Comment) ->Result<(), ()> {
+        Ok(())
     }
 }

@@ -4,6 +4,7 @@ use std::time::Duration;
 use crate::services::blog_post::BlogPost;
 use crate::nostr::client_error::ClientError;
 use crate::services::blog_context::WINDOW_SIZE;
+use crate::services::comment::Comment;
 use gloo_console::log;
 
 #[derive(Debug)]
@@ -144,5 +145,32 @@ impl NostrClient {
                 let _ = tx.unbounded_send(post);
             }
         }
+    }
+
+    // event_id is the regular event id. post_id is the d_tag id used for addresable events
+    pub async  fn get_replies(&self, event_id: String, post_id: String, author_pubkey: String,) -> Result<Events, ClientError> {
+        let target = format!("30023:{}:{}", author_pubkey, post_id);
+
+        let filter =  Filter::new()
+                .kinds(vec![Kind::TextNote, Kind::Custom(1111)])
+                .custom_tag(SingleLetterTag::lowercase(Alphabet::A), &target);
+
+        let events = self.client.fetch_events(filter, Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
+        log!(format!("Got {} comments to post {}", events.len(), post_id));
+
+        Ok(events)
+    }
+
+    pub async fn publish_reply(&self, comment: Comment) -> Result<(),ClientError> {
+        // TODO sign with nostr signer plugin
+        let secret_key = SecretKey::parse("e5af1806656d1234ecc6a64d878f198c445a4e935c00ee3e201b8ff8c0e99073")
+            .map_err(|e| ClientError::KeyError(e))?;
+        let keys = Keys::new(secret_key);
+        let event = comment.to_event_builder()?
+            .sign_with_keys(&keys).map_err(|e| ClientError::EventBuildError(e))?;
+        let _event_id = self.client.send_event(&event)
+            .await
+            .map_err(|e| ClientError::RelayError(e))?;
+        Ok(())
     }
 }

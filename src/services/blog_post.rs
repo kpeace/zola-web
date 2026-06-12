@@ -11,6 +11,7 @@ pub struct BlogPost {
     pub title: String,
     pub excerpt: String,
     pub content: String,
+    pub event_id: String,
 }
 
 impl BlogPost {
@@ -38,6 +39,7 @@ impl BlogPost {
             title: post_title.to_string(),
             excerpt: excerpt,
             content: e.content.clone(),
+            event_id: e.id.to_hex(),
         })
     }
 }
