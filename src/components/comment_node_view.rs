@@ -8,6 +8,18 @@ pub struct NodeProps {
     pub post_id: String,
 }
 
+fn short_pubkey(pubkey: &str) -> String {
+    if pubkey.len() < 16 {
+        return pubkey.to_string();
+    }
+
+    format!(
+        "{}...{}",
+        &pubkey[..8],
+        &pubkey[pubkey.len() - 8..]
+    )
+}
+
 #[function_component(CommentNodeView)]
 pub fn comment_node(props: &NodeProps) -> Html {
     let show_reply = use_state(|| false);
@@ -19,20 +31,38 @@ pub fn comment_node(props: &NodeProps) -> Html {
 
     html! {
         <div class="comment">
-            <p>{ &props.node.comment.content }</p>
+            <div class="comment-body">
 
-            <button onclick={toggle}>{ "Reply" }</button>
+                <div class="comment-header">
+                    <span class="comment-author">
+                        { short_pubkey(&props.node.comment.comment_author) }
+                    </span>
+                </div>
 
-            if *show_reply {
-                <CommentInput
-                    post_id={props.post_id.clone()}
-                    parent_id={props.node.comment.id.clone()}
-                />
-            }
+                <div class="comment-content">
+                    { &props.node.comment.content }
+                </div>
 
-            <div class="children">
+                <div class="comment-actions">
+                    <button onclick={toggle}>{ "Reply" }</button>
+                </div>
+
+
+            </div>
+
+            <div class="comment-children">
+                if *show_reply {
+                    <CommentInput
+                        post_id={props.post_id.clone()}
+                        parent_id={props.node.comment.id.clone()}
+                    />
+                }
+
                 { for props.node.children.iter().map(|child| html! {
-                    <CommentNodeView node={child.clone()} post_id={props.post_id.clone()} />
+                    <CommentNodeView
+                        node={child.clone()}
+                        post_id={props.post_id.clone()}
+                    />
                 })}
             </div>
         </div>

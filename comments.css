@@ -1,0 +1,43 @@
+/* Entire comment */
+.comment {
+    margin-top: 12px;
+}
+
+/* Card containing the actual comment */
+.comment-body {
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 10px;
+    background: #fafafa;
+}
+
+/* Author + metadata line */
+.comment-header {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Comment text */
+.comment-content {
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+}
+
+/* Reply button */
+.comment-actions {
+    margin-top: 6px;
+}
+
+/* Container for children */
+.comment-children {
+    margin-top: 8px;
+    margin-left: 20px;
+    padding-left: 16px;
+    border-left: 2px solid #d0d7de;
+}
