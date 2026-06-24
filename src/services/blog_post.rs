@@ -12,6 +12,7 @@ pub struct BlogPost {
     pub excerpt: String,
     pub content: String,
     pub event_id: String,
+    pub post_author_id: String,
 }
 
 impl BlogPost {
@@ -40,6 +41,7 @@ impl BlogPost {
             excerpt: excerpt,
             content: e.content.clone(),
             event_id: e.id.to_hex(),
+            post_author_id: e.pubkey.to_hex(),
         })
     }
 }

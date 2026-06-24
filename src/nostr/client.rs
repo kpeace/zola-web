@@ -109,21 +109,6 @@ impl NostrClient {
             .kind(Kind::LongFormTextNote)
             .since(post_already_read_ts);
 
-        // Fetch historical posts first
-        // if let Ok(events) = self.client.fetch_events(filter.clone(), Duration::from_secs(10)).await {
-        //     for event in events {
-        //         let post = match BlogPost::from_event(&event) {
-        //             Ok(post) => post,
-        //             Err(err) => {
-        //                 log!(format!("Error: {}; Event: {}", err, event.as_json()));
-        //                 continue;
-        //             }
-        //         };
-        //         // Debug
-        //         let _ = tx.unbounded_send(post);
-        //     }
-        // }
-
         // Now subscribe for live updates
         let _ = self.client.subscribe(filter, None).await;
 
@@ -148,15 +133,15 @@ impl NostrClient {
     }
 
     // event_id is the regular event id. post_id is the d_tag id used for addresable events
-    pub async  fn get_replies(&self, event_id: String, post_id: String, author_pubkey: String,) -> Result<Events, ClientError> {
+    pub async  fn get_replies(&self, post_id: &str, author_pubkey: &str,) -> Result<Events, ClientError> {
         let target = format!("30023:{}:{}", author_pubkey, post_id);
 
         let filter =  Filter::new()
                 .kinds(vec![Kind::TextNote, Kind::Custom(1111)])
-                .custom_tag(SingleLetterTag::lowercase(Alphabet::A), &target);
+                .custom_tag(SingleLetterTag::uppercase(Alphabet::A), &target);
 
-        let events = self.client.fetch_events(filter, Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
-        log!(format!("Got {} comments to post {}", events.len(), post_id));
+        let events = self.client.fetch_events(filter.clone(), Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
+        log!(format!("Got {} comments to post {}, with filter {}", events.len(), post_id, filter.try_as_json().unwrap()));
 
         Ok(events)
     }

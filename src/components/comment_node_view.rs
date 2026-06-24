@@ -54,7 +54,9 @@ pub fn comment_node(props: &NodeProps) -> Html {
                 if *show_reply {
                     <CommentInput
                         post_id={props.post_id.clone()}
+                        post_author_id={props.node.comment.root_author_id.clone()}
                         parent_id={props.node.comment.id.clone()}
+                        parent_author_id={props.node.comment.parent_author_id.clone()}
                     />
                 }
 

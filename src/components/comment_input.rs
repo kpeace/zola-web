@@ -1,14 +1,13 @@
 use yew::prelude::*;
 use crate::services::{blog_context::BlogContext, comment::Comment};
 use gloo_console::log;
-use wasm_bindgen_futures::spawn_local;
-use std::rc::Rc;
-
 
 #[derive(Properties, PartialEq)]
 pub struct InputProps {
     pub post_id: String,
+    pub post_author_id: String,
     pub parent_id: String,
+    pub parent_author_id: String,
 }
 
 
@@ -31,7 +30,9 @@ pub fn comment_input(props: &InputProps) -> Html {
     let onclick = {
         //let content = text.clone().trim().to_string();
         let post_id = props.post_id.clone();
+        let post_author_id = props.post_author_id.clone();
         let parent_id = props.parent_id.clone();
+        let parent_author_id = props.parent_author_id.clone();
 
 
 
@@ -50,11 +51,15 @@ pub fn comment_input(props: &InputProps) -> Html {
             let content_clone = content.clone();
             let post_id_clone = post_id.clone();
             let parent_id_clone = parent_id.clone();
+            let parent_author_id_clone = parent_author_id.clone();
+            let post_author_clone = post_author_id.clone();
             let cloned_ctx = ctx.clone();
 
             let comment = Comment {
             parent_id: parent_id_clone,
+            parent_author_id: parent_author_id_clone,
             root_slug: post_id_clone,
+            root_author_id: post_author_clone,
             content: content_clone,
             ..Default::default()   // or manually fill other fields
         };

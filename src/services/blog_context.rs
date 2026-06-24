@@ -5,7 +5,6 @@ use crate::nostr::client::NostrClient;
 use crate::services::config::AppConfig;
 use std::collections::HashMap;
 use gloo_console::log;
-use gloo_net::websocket::events;
 use yew::prelude::*;
 use crate::services::comment::Comment;
 
@@ -111,21 +110,27 @@ impl BlogContext {
         }
     }
 
-    // pub async fn get_post_comments(&self, event_id: String, post_id: String, author_pubkey: String) -> Result<Vec<Comment>, ()> {
-    //     match self.client.get_replies(event_id, post_id, author_pubkey).await {
-    //         Ok(events) => {
-    //             events
-    //                 .into_iter()
-    //                 .filter_map(|e|{
-    //                     match  {
+    pub async fn get_post_comments(&self, post_id: &str, author_pubkey: &str) -> Vec<Comment> {
+        let events = match self.client.get_replies(post_id, author_pubkey).await {
+            Ok(events) => events,
+            Err(err) => {
+                log!(format!("Error fetching comments: {}", err));
+                return Vec::new();
+            }
+        };
 
-    //                     }
-    //                 })
-    //                 .collect()
-    //         }
-    //         Err(_) => (),
-    //     }
-    // }
+        events
+            .into_iter()
+            .filter_map(|e|{
+                Comment::from_event(&e)
+                    .map_err(|err| {
+                        log!(format!("Error parsing comment: {}", err));
+                    })
+                    .ok()
+            })
+            .collect()
+
+    }
 
     pub fn insert_window(&self, window_id: i32, posts: Vec<BlogPost>) {
         let mut sorted_posts = posts.clone();
@@ -182,9 +187,5 @@ impl BlogContext {
             }
             k += 1;
         }
-    }
-
-    pub async fn publish_comment(&self, comment: Comment) ->Result<(), ()> {
-        Ok(())
     }
 }
