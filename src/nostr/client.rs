@@ -153,9 +153,21 @@ impl NostrClient {
         let keys = Keys::new(secret_key);
         let event = comment.to_event_builder()?
             .sign_with_keys(&keys).map_err(|e| ClientError::EventBuildError(e))?;
-        let _event_id = self.client.send_event(&event)
+        let send_result = self.client.send_event(&event)
             .await
             .map_err(|e| ClientError::RelayError(e))?;
+
+        log!(format!("{:#?}", send_result));
+
+        // send result contains sending status foreach relay.
+        // We will declare an error only if reply was not sent to any relay
+        if send_result.success.is_empty() {
+            let json_error_map = serde_json::to_string(&send_result.failed)
+                .map_err(|e|ClientError::SendCommentError(
+                    format!("Sending to all relays failed. In addition failed toconvert error map to string: {}", e))
+                )?;
+            return Err(ClientError::SendCommentError(format!("Failed to send comment to all relays! Error map: {}", json_error_map)));
+        }
         Ok(())
     }
 }

@@ -14,6 +14,8 @@ pub struct InputProps {
 #[function_component(CommentInput)]
 pub fn comment_input(props: &InputProps) -> Html {
     let text = use_state(|| "".to_string());
+    let sending = use_state(|| false);
+    let error = use_state(|| None::<String>);
     let ctx = use_context::<BlogContext>()
         .expect("BlogContext not found");
 
@@ -34,8 +36,8 @@ pub fn comment_input(props: &InputProps) -> Html {
         let parent_id = props.parent_id.clone();
         let parent_author_id = props.parent_author_id.clone();
 
-
-
+        let sending = sending.clone();
+        let error = error.clone();
 
         Callback::from(move |_| {
             let content = (*text_for_click).trim().to_string();
@@ -48,11 +50,14 @@ pub fn comment_input(props: &InputProps) -> Html {
             }
 
             // Clone the values *before* moving into async
+            let text_for_clear = text_for_click.clone();
             let content_clone = content.clone();
             let post_id_clone = post_id.clone();
             let parent_id_clone = parent_id.clone();
             let parent_author_id_clone = parent_author_id.clone();
             let post_author_clone = post_author_id.clone();
+            let sending = sending.clone();
+            let error = error.clone();
             let cloned_ctx = ctx.clone();
 
             let comment = Comment {
@@ -65,22 +70,49 @@ pub fn comment_input(props: &InputProps) -> Html {
         };
 
             wasm_bindgen_futures::spawn_local(async move {
+                sending.set(true);
                 if let Err(err) = cloned_ctx.client.publish_reply(comment.clone()).await {
                     log!(format!("Error sending event: {}", err));
+                    error.set(Some("Failed to send reply!".to_string()));
                 } else {
                     log!(format!("Comment publishd succefully: {}", comment));
+                    error.set(None);
+                    text_for_clear.set(String::new());
+                    // reload comments
                 }
+                sending.set(false);
             });
         })
     };
 
     html! {
         <div class="comment-input">
+            <div>
             <textarea
                 value={(*text).clone()}
                 oninput={oninput}
+                disabled={*sending}
             />
-            <button onclick={onclick}>{ "Send" }</button>
+            </div>
+            if let Some(msg) = &*error {
+                <div class="error">
+                    {msg}
+                </div>
+            }
+            <div>
+            <button
+                onclick={onclick}
+                disabled={*sending}
+            >
+                {
+                    if *sending {
+                        "Sending..."
+                    } else {
+                        "Send"
+                    }
+                }
+            </button>
+            </div>
         </div>
     }
 }

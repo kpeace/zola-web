@@ -9,6 +9,7 @@ pub enum ClientError {
     TagFormatError(String, String),
     UnsuportedComment(String),
     EventBuildError(nostr_sdk::event::builder::Error),
+    SendCommentError(String),
 }
 
 
@@ -22,6 +23,7 @@ impl std::fmt::Display for ClientError {
             ClientError::TagFormatError(ref t, ref s) => write!(f, "Error in tag {}: {}", t, s),
             ClientError::UnsuportedComment(ref s) => write!(f, "Unsuported comment {}", s),
             ClientError::EventBuildError(ref e) => write!(f, "Error building event: {}", e),
+            ClientError::SendCommentError(ref s) => write!(f, "Failed to send comment: {}", s),
         }
     }
 }
