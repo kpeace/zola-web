@@ -8,6 +8,7 @@ pub struct InputProps {
     pub post_author_id: String,
     pub parent_id: String,
     pub parent_author_id: String,
+    pub on_comment_sent: Callback<()>,
 }
 
 
@@ -39,6 +40,8 @@ pub fn comment_input(props: &InputProps) -> Html {
         let sending = sending.clone();
         let error = error.clone();
 
+        let on_comment_sent_clone = props.on_comment_sent.clone();
+
         Callback::from(move |_| {
             let content = (*text_for_click).trim().to_string();
             //DEBUG
@@ -59,6 +62,7 @@ pub fn comment_input(props: &InputProps) -> Html {
             let sending = sending.clone();
             let error = error.clone();
             let cloned_ctx = ctx.clone();
+            let on_comment_sent_clone = on_comment_sent_clone.clone();
 
             let comment = Comment {
             parent_id: parent_id_clone,
@@ -78,7 +82,7 @@ pub fn comment_input(props: &InputProps) -> Html {
                     log!(format!("Comment publishd succefully: {}", comment));
                     error.set(None);
                     text_for_clear.set(String::new());
-                    // reload comments
+                    on_comment_sent_clone.emit(());
                 }
                 sending.set(false);
             });

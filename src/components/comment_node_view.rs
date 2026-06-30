@@ -6,6 +6,7 @@ use crate::components::comment_input::CommentInput;
 pub struct NodeProps {
     pub node: CommentNode,
     pub post_id: String,
+    pub on_comment_sent: Callback<()>,
 }
 
 fn short_pubkey(pubkey: &str) -> String {
@@ -57,6 +58,7 @@ pub fn comment_node(props: &NodeProps) -> Html {
                         post_author_id={props.node.comment.root_author_id.clone()}
                         parent_id={props.node.comment.id.clone()}
                         parent_author_id={props.node.comment.parent_author_id.clone()}
+                        on_comment_sent={props.on_comment_sent.clone()}
                     />
                 }
 
@@ -64,6 +66,7 @@ pub fn comment_node(props: &NodeProps) -> Html {
                     <CommentNodeView
                         node={child.clone()}
                         post_id={props.post_id.clone()}
+                        on_comment_sent={props.on_comment_sent.clone()}
                     />
                 })}
             </div>
