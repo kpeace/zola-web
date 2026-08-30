@@ -20,7 +20,7 @@ pub struct Comment {
 
 impl std::fmt::Display for Comment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
+        std::write!(
             f,
             "Comment by {}: {}",
             self.comment_author,
@@ -241,9 +241,8 @@ impl CommentNode {
 #[cfg(target_arch = "wasm32")]
 #[cfg(test)]
 mod tests {
-    use crate::services::comment;
 
-use super::*;
+    use super::*;
     use wasm_bindgen_test::wasm_bindgen_test;
     use wasm_bindgen_test::wasm_bindgen_test_configure;
     wasm_bindgen_test_configure!(run_in_browser);

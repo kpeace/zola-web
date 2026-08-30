@@ -1,6 +1,7 @@
 use yew::prelude::*;
 use crate::services::{blog_context::BlogContext, comment::Comment};
 use gloo_console::log;
+use crate::components::logedin_user::LogedinUser;
 
 #[derive(Properties, PartialEq)]
 pub struct InputProps {
@@ -19,6 +20,9 @@ pub fn comment_input(props: &InputProps) -> Html {
     let error = use_state(|| None::<String>);
     let ctx = use_context::<BlogContext>()
         .expect("BlogContext not found");
+
+    let ctx_clone = ctx.clone();
+
 
     let oninput = {
         let text = text.clone();
@@ -65,13 +69,13 @@ pub fn comment_input(props: &InputProps) -> Html {
             let on_comment_sent_clone = on_comment_sent_clone.clone();
 
             let comment = Comment {
-            parent_id: parent_id_clone,
-            parent_author_id: parent_author_id_clone,
-            root_slug: post_id_clone,
-            root_author_id: post_author_clone,
-            content: content_clone,
-            ..Default::default()   // or manually fill other fields
-        };
+                parent_id: parent_id_clone,
+                parent_author_id: parent_author_id_clone,
+                root_slug: post_id_clone,
+                root_author_id: post_author_clone,
+                content: content_clone,
+                ..Default::default()   // or manually fill other fields
+            };
 
             wasm_bindgen_futures::spawn_local(async move {
                 sending.set(true);
@@ -88,6 +92,13 @@ pub fn comment_input(props: &InputProps) -> Html {
             });
         })
     };
+
+    log!(
+    format!(
+        "CommentInput login_info: {:?}",
+        &*ctx_clone.login_info
+    )
+);
 
     html! {
         <div class="comment-input">
@@ -116,6 +127,9 @@ pub fn comment_input(props: &InputProps) -> Html {
                     }
                 }
             </button>
+            <div>
+                <LogedinUser />
+            </div>
             </div>
         </div>
     }

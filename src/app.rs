@@ -6,6 +6,7 @@ use crate::nostr::client::NostrClient;
 use crate::services::blog_post::BlogPost;
 use crate::services::blog_context::{BlogContext, BlogState, new_window_cache};
 use crate::services::config::{AppConfig, ConfigError};
+use crate::services::login_info::LoginInfo;
 use gloo_console::log;
 use crate::components::page_layout::PageLayout;
 
@@ -25,6 +26,8 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
     let windows = use_memo((), |_| new_window_cache());
 
     let client = use_state(|| None::<Rc<NostrClient>>);
+
+    let login_info = use_state(|| None::<LoginInfo>);
 
     // init client
     {
@@ -49,6 +52,7 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
         let state = state.clone();
         let windows = (*windows).clone();
         let config_opt = config_opt.clone();
+        let login_info_clone = login_info.clone();
 
         use_effect_with(client.clone(), move |client_handle| {
             // extract + CLONE outside async
@@ -60,6 +64,7 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
                     state: state.clone(),
                     windows: windows.clone(),
                     config: config.clone(),
+                    login_info: login_info_clone.clone(),
                 };
 
                 wasm_bindgen_futures::spawn_local(async move {
@@ -98,6 +103,7 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
             state,
             windows: (*windows).clone(),
             config,
+            login_info,
         }),
         _ => None,
     }

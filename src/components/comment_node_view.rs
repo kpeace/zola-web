@@ -12,13 +12,13 @@ pub struct NodeProps {
 fn short_pubkey(pubkey: &str) -> String {
     if pubkey.len() < 16 {
         return pubkey.to_string();
+    } else {
+        return format!(
+            "{}...{}",
+            &pubkey[..8],
+            &pubkey[pubkey.len() - 8..]
+        )
     }
-
-    format!(
-        "{}...{}",
-        &pubkey[..8],
-        &pubkey[pubkey.len() - 8..]
-    )
 }
 
 #[function_component(CommentNodeView)]

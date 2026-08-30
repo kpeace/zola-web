@@ -1,4 +1,5 @@
 use nostr_sdk::prelude::*;
+use nostr_browser_signer::BrowserSigner;
 use std::rc::Rc;
 use std::time::Duration;
 use crate::services::blog_post::BlogPost;
@@ -144,6 +145,16 @@ impl NostrClient {
         log!(format!("Got {} comments to post {}, with filter {}", events.len(), post_id, filter.try_as_json().unwrap()));
 
         Ok(events)
+    }
+
+    pub async fn login(&self, )-> Result<nostr_sdk::PublicKey, ClientError> {
+        let signer = BrowserSigner::new()
+            .map_err(|e| ClientError::SignerError(e))?;
+        let pub_key = signer.get_public_key()
+            .await
+            .map_err(|e| ClientError::SignerKeyError(e))?;
+        self.client.set_signer(signer).await;
+        Ok(pub_key)
     }
 
     pub async fn publish_reply(&self, comment: Comment) -> Result<(),ClientError> {

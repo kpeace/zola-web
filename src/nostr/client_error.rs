@@ -10,6 +10,8 @@ pub enum ClientError {
     UnsuportedComment(String),
     EventBuildError(nostr_sdk::event::builder::Error),
     SendCommentError(String),
+    SignerError(nostr_browser_signer::Error),
+    SignerKeyError(nostr::signer::SignerError),
 }
 
 
@@ -24,6 +26,8 @@ impl std::fmt::Display for ClientError {
             ClientError::UnsuportedComment(ref s) => write!(f, "Unsuported comment {}", s),
             ClientError::EventBuildError(ref e) => write!(f, "Error building event: {}", e),
             ClientError::SendCommentError(ref s) => write!(f, "Failed to send comment: {}", s),
+            ClientError::SignerError(ref e) => write!(f, "Error in setting up signer: {}", e),
+            ClientError::SignerKeyError(ref e) => write!(f, "Error in signer key: {}", e),
         }
     }
 }

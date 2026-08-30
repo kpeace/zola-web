@@ -3,6 +3,7 @@ use std::sync::{Arc, RwLock};
 use crate::services::blog_post::BlogPost;
 use crate::nostr::client::NostrClient;
 use crate::services::config::AppConfig;
+use crate::services::login_info::LoginInfo;
 use std::collections::HashMap;
 use gloo_console::log;
 use yew::prelude::*;
@@ -33,6 +34,7 @@ pub struct BlogContext {
     pub state: UseStateHandle<BlogState>,
     pub windows: WindowCache,
     pub config: Rc<AppConfig>,
+    pub login_info: UseStateHandle<Option<LoginInfo>>,
 }
 
 impl PartialEq for BlogContext{
@@ -187,5 +189,19 @@ impl BlogContext {
             }
             k += 1;
         }
+    }
+
+    pub async fn login(&self,) -> Option<LoginInfo>{
+        let pub_key = match self.client.login().await {
+            Ok(pub_key) => pub_key,
+            Err(e) => {
+                log!(format!("Unable to login: {}", e));
+                return None
+            },
+        };
+
+        Some(LoginInfo {
+            pub_key: pub_key.to_hex(),
+        })
     }
 }
