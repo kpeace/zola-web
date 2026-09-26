@@ -1,4 +1,5 @@
 use nostr_sdk::prelude::*;
+use serde_json::Error;
 
 #[derive(Debug)]
 pub enum ClientError {
@@ -12,6 +13,7 @@ pub enum ClientError {
     SendCommentError(String),
     SignerError(nostr_browser_signer::Error),
     SignerKeyError(nostr::signer::SignerError),
+    JsonParseError(serde_json::Error),
 }
 
 
@@ -28,6 +30,7 @@ impl std::fmt::Display for ClientError {
             ClientError::SendCommentError(ref s) => write!(f, "Failed to send comment: {}", s),
             ClientError::SignerError(ref e) => write!(f, "Error in setting up signer: {}", e),
             ClientError::SignerKeyError(ref e) => write!(f, "Error in signer key: {}", e),
+            ClientError::JsonParseError(ref e) => write!(f, "Error parsing json: {}", e),
         }
     }
 }

@@ -11,7 +11,11 @@ pub fn logedin_user() -> Html {
         html! {
             <span class="login-display">
                 {"As: "}
-                {&login_info.pub_key}
+                if let Some(display_name) = &login_info.display_name {
+                    {display_name}
+                } else {
+                    {&login_info.pub_key}
+                }
             </span>
         }
     } else {

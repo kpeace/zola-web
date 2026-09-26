@@ -141,7 +141,9 @@ impl NostrClient {
                 .kinds(vec![Kind::TextNote, Kind::Custom(1111)])
                 .custom_tag(SingleLetterTag::uppercase(Alphabet::A), &target);
 
-        let events = self.client.fetch_events(filter.clone(), Duration::from_secs(5)).await.map_err(|e| ClientError::EventLoadingError(e))?;
+        let events = self.client.fetch_events(filter.clone(), Duration::from_secs(5))
+            .await
+            .map_err(|e| ClientError::EventLoadingError(e))?;
         log!(format!("Got {} comments to post {}, with filter {}", events.len(), post_id, filter.try_as_json().unwrap()));
 
         Ok(events)
@@ -155,6 +157,18 @@ impl NostrClient {
             .map_err(|e| ClientError::SignerKeyError(e))?;
         self.client.set_signer(signer).await;
         Ok(pub_key)
+    }
+
+    pub async fn get_profile(&self, pub_key: nostr_sdk::PublicKey) -> Result<Events, ClientError> {
+        let filter = Filter::new()
+            .kind(Kind::Metadata)
+            .author(pub_key);
+
+        let events = self.client.fetch_events(filter.clone(), Duration::from_secs(5))
+            .await
+            .map_err(|e| ClientError::EventLoadingError(e))?;
+
+        Ok(events)
     }
 
     pub async fn publish_reply(&self, comment: Comment) -> Result<(),ClientError> {

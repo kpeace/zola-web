@@ -200,8 +200,31 @@ impl BlogContext {
             },
         };
 
+        match self.client.get_profile(pub_key).await {
+            Ok(events) => {
+                if !events.is_empty() {
+                    match LoginInfo::from_event(events.first()?) {
+                        Ok(login_info) => {
+                            return Some(login_info)
+                        },
+                        Err(e) => {
+                            log!(format!("Unable to parse metadata event. Error: {}", e))
+                        }
+                    }
+                }
+            },
+            Err(e) => {
+                log!(format!("Unable to fetch metadata / profile infor for pub key: '{}'. Error: {}",
+                    pub_key,
+                    e));
+            },
+        };
+
         Some(LoginInfo {
             pub_key: pub_key.to_hex(),
+            ..Default::default()
         })
+
+
     }
 }
