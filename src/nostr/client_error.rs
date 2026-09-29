@@ -1,5 +1,4 @@
 use nostr_sdk::prelude::*;
-use serde_json::Error;
 
 #[derive(Debug)]
 pub enum ClientError {

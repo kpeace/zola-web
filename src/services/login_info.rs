@@ -17,9 +17,17 @@ struct Profile {
     display_name: Option<String>,
     about: Option<String>,
     picture: Option<String>,
+
+    #[allow(dead_code)]
     banner: Option<String>,
+
+    #[allow(dead_code)]
     website: Option<String>,
+
+    #[allow(dead_code)]
     nip05: Option<String>,
+
+    #[allow(dead_code)]
     lud16: Option<String>,
 }
 
