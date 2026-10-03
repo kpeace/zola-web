@@ -2,14 +2,6 @@ use yew::prelude::*;
 
 use crate::services::blog_context::BlogContext;
 
-fn short_npub(npub: &str) -> String {
-    if npub.len() <= 8 {
-        npub.to_string()
-    } else {
-        std::format!("{}...{}", &npub[..4], &npub[npub.len() - 4..])
-    }
-}
-
 #[function_component(LogedinUser)]
 pub fn logedin_user() -> Html {
     let ctx = use_context::<BlogContext>()
@@ -19,11 +11,10 @@ pub fn logedin_user() -> Html {
         return html! {};
     };
 
-    let npub = login_info.pub_key.clone();
-    let short_npub = short_npub(&npub);
+    let short_npub = login_info.short_pub_key();
 
     let copy_npub = {
-        let npub = npub.clone();
+        let npub = login_info.pub_key.clone();
 
         Callback::from(move |_| {
             let npub = npub.clone();
@@ -41,7 +32,6 @@ pub fn logedin_user() -> Html {
 
     html! {
         <span class="login-display">
-            {"As: "}
 
             {
                 match (&login_info.display_name, &login_info.name) {

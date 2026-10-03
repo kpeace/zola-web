@@ -17,13 +17,16 @@ pub struct InputProps {
 pub fn comment_input(props: &InputProps) -> Html {
     let text = use_state(|| "".to_string());
     let sending = use_state(|| false);
+    let is_loggedin = use_state(|| false);
     let error = use_state(|| None::<String>);
     let ctx = use_context::<BlogContext>()
         .expect("BlogContext not found");
 
+    let ctx_chk_loggedin = ctx.clone();
+    let is_loggedin_clone = is_loggedin.clone();
     let ctx_clone = ctx.clone();
 
-
+    // gets input into the text variable
     let oninput = {
         let text = text.clone();
         Callback::from(move |e: InputEvent| {
@@ -34,6 +37,7 @@ pub fn comment_input(props: &InputProps) -> Html {
 
     let text_for_click = text.clone();
 
+    // disables the "send" button after it's clicked
     let onclick = {
         //let content = text.clone().trim().to_string();
         let post_id = props.post_id.clone();
@@ -93,6 +97,12 @@ pub fn comment_input(props: &InputProps) -> Html {
         })
     };
 
+
+    // disables send if user not logged in
+    wasm_bindgen_futures::spawn_local(async move {
+        is_loggedin_clone.set(ctx_chk_loggedin.is_loggedin().await);
+    });
+
     log!(
     format!(
         "CommentInput login_info: {:?}",
@@ -117,7 +127,7 @@ pub fn comment_input(props: &InputProps) -> Html {
             <div>
             <button
                 onclick={onclick}
-                disabled={*sending}
+                disabled={*sending || !*is_loggedin}
             >
                 {
                     if *sending {

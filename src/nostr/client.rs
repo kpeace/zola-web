@@ -30,7 +30,6 @@ impl NostrClient {
         let keys = Keys::generate();
 
         let client = Client::builder()
-            .signer(keys.clone())
             .build();
 
         Ok(Self {
@@ -149,6 +148,13 @@ impl NostrClient {
         Ok(events)
     }
 
+    pub async fn is_loggedin(&self, ) -> bool {
+        match self.client.public_key().await {
+                Ok(_) => true,
+                Err(_) => false,
+            }
+    }
+
     pub async fn login(&self, )-> Result<nostr_sdk::PublicKey, ClientError> {
         let signer = BrowserSigner::new()
             .map_err(|e| ClientError::SignerError(e))?;
@@ -172,17 +178,19 @@ impl NostrClient {
     }
 
     pub async fn publish_reply(&self, comment: Comment) -> Result<(),ClientError> {
-        // TODO sign with nostr signer plugin
-        let secret_key = SecretKey::parse("e5af1806656d1234ecc6a64d878f198c445a4e935c00ee3e201b8ff8c0e99073")
-            .map_err(|e| ClientError::KeyError(e))?;
-        let keys = Keys::new(secret_key);
-        let event = comment.to_event_builder()?
-            .sign_with_keys(&keys).map_err(|e| ClientError::EventBuildError(e))?;
-        let send_result = self.client.send_event(&event)
+        // used mainly as a gate but also for logging
+        let pub_key = self.client.public_key()
+            .await
+            .map_err(|e| ClientError::MissingSignerError(e))?;
+
+        let event = comment.to_event_builder()?;
+
+        let send_result = self.client.send_event_builder(event)
             .await
             .map_err(|e| ClientError::RelayError(e))?;
 
         log!(format!("{:#?}", send_result));
+        log!(format!("Signed by: {}", pub_key));
 
         // send result contains sending status foreach relay.
         // We will declare an error only if reply was not sent to any relay

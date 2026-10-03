@@ -7,3 +7,4 @@ pub mod comment_tree;
 pub mod comment_node_view;
 pub mod comment_input;
 pub mod logedin_user;
+pub mod login_button;

@@ -191,6 +191,10 @@ impl BlogContext {
         }
     }
 
+    pub async fn is_loggedin(&self,) -> bool {
+        self.client.is_loggedin().await
+    }
+
     pub async fn login(&self,) -> Option<LoginInfo>{
         let pub_key = match self.client.login().await {
             Ok(pub_key) => pub_key,

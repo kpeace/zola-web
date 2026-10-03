@@ -13,6 +13,7 @@ pub enum ClientError {
     SignerError(nostr_browser_signer::Error),
     SignerKeyError(nostr::signer::SignerError),
     JsonParseError(serde_json::Error),
+    MissingSignerError(nostr_sdk::client::Error),
 }
 
 
@@ -30,6 +31,7 @@ impl std::fmt::Display for ClientError {
             ClientError::SignerError(ref e) => write!(f, "Error in setting up signer: {}", e),
             ClientError::SignerKeyError(ref e) => write!(f, "Error in signer key: {}", e),
             ClientError::JsonParseError(ref e) => write!(f, "Error parsing json: {}", e),
+            ClientError::MissingSignerError(ref e) => write!(f, "Attmepted to send reply with no signer: {}", e),
         }
     }
 }

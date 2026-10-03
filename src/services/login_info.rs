@@ -45,4 +45,12 @@ impl LoginInfo {
         })
     }
 
+    pub fn short_pub_key(&self,) -> String {
+        if self.pub_key.len() <= 8 {
+            self.pub_key.to_string()
+        } else {
+            std::format!("{}...{}", &self.pub_key[..4], &self.pub_key[self.pub_key.len() - 4..])
+        }
+}
+
 }

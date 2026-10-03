@@ -3,6 +3,7 @@ use yew_router::prelude::*;
 use crate::router::Route;
 use gloo_console::log;
 use crate::services::blog_context::BlogContext;
+use crate::components::login_button::LoginButton;
 
 #[derive(Properties, PartialEq)]
 pub struct LayoutProps {
@@ -40,22 +41,24 @@ pub fn layout(props: &LayoutProps) -> Html {
     };
 
     html! {
-        <div class="app-container">
-            // Top banner
-            <header class="header">
+    <div class="app-container">
+        <header class="header">
+            <div class="header-left">
                 <h1>{ title }</h1>
-                <button class="round-button" onclick={on_login}>
-                    { "Login" }
-                </button>
-                <nav>
-                    <Link<Route> to={Route::Home}>{ "Posts" }</Link<Route>>
-                </nav>
-            </header>
 
-            // Page content
-            <main class="content">
-                { for props.children.iter() }
-            </main>
-        </div>
-    }
+                <nav>
+                    <Link<Route> to={Route::Home}>
+                        { "Posts" }
+                    </Link<Route>>
+                </nav>
+            </div>
+
+            <LoginButton on_login={on_login} />
+        </header>
+
+        <main class="content">
+            { for props.children.iter() }
+        </main>
+    </div>
+}
 }

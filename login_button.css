@@ -1,0 +1,218 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.header h1 {
+    margin: 0;
+}
+
+.header nav {
+    display: flex;
+    align-items: center;
+}
+
+/* --------------------
+   Login button
+   -------------------- */
+
+.login-button {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    padding: 0.55rem 1rem;
+
+    border: none;
+    border-radius: 999px;
+
+    background: #3b6fd8;
+    color: white;
+
+    font-size: 0.95rem;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        transform 0.1s ease;
+}
+
+.login-button:hover {
+    background: #315fbd;
+}
+
+.login-button:active {
+    transform: scale(0.97);
+}
+
+.login-icon {
+    font-size: 1rem;
+}
+
+
+/* --------------------
+   Logged-in profile chip
+   -------------------- */
+
+.profile-container {
+    position: relative;
+}
+
+.profile-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    min-width: 170px;
+
+    padding: 0.35rem 0.65rem 0.35rem 0.4rem;
+
+    border: none;
+    border-radius: 999px;
+
+    background: #eef3fb;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.profile-chip:hover {
+    background: #e3ebf8;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+
+/* --------------------
+   Avatar
+   -------------------- */
+
+.profile-avatar {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #d6dfef;
+    font-size: 1.1rem;
+}
+
+
+/* --------------------
+   Name + npub
+   -------------------- */
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    line-height: 1.2;
+}
+
+.profile-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    color: #26364d;
+
+    max-width: 110px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-npub {
+    font-size: 0.72rem;
+
+    color: #718096;
+    font-family: monospace;
+}
+
+.profile-arrow {
+    margin-left: auto;
+
+    font-size: 1rem;
+    color: #718096;
+}
+
+
+/* --------------------
+   Dropdown
+   -------------------- */
+
+.profile-menu {
+    position: absolute;
+
+    right: 0;
+    top: calc(100% + 0.5rem);
+
+    width: 260px;
+
+    padding: 0.5rem;
+
+    background: white;
+
+    border: 1px solid #dce3ed;
+    border-radius: 10px;
+
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.12);
+
+    z-index: 100;
+}
+
+.profile-menu-npub {
+    padding: 0.6rem 0.7rem;
+    margin-bottom: 0.25rem;
+
+    font-family: monospace;
+    font-size: 0.72rem;
+
+    color: #718096;
+
+    overflow-wrap: anywhere;
+}
+
+.profile-menu-item {
+    display: block;
+
+    width: 100%;
+
+    padding: 0.55rem 0.7rem;
+
+    border: none;
+    border-radius: 6px;
+
+    background: transparent;
+
+    text-align: left;
+
+    cursor: pointer;
+}
+
+.profile-menu-item:hover {
+    background: #f1f4f8;
+}
