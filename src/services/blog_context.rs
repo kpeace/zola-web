@@ -231,4 +231,10 @@ impl BlogContext {
 
 
     }
+
+    pub async fn log_out(&self,) {
+        self.client.log_out().await;
+
+        self.login_info.set(None);
+    }
 }

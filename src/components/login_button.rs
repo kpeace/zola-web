@@ -21,6 +21,16 @@ pub fn login_button(props: &LoginButtonProps) -> Html {
         })
     };
 
+    let log_off = {
+        let ctx_clone = ctx.clone();
+        Callback::from(move |_| {
+            let ctx = ctx_clone.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                ctx.log_out().await;
+            });
+        })
+    };
+
     // Not logged in
     if ctx.login_info.is_none() {
         return html! {
@@ -97,7 +107,9 @@ pub fn login_button(props: &LoginButtonProps) -> Html {
                                 {"Copy npub"}
                             </button>
 
-                            <button class="profile-menu-item">
+                            <button class="profile-menu-item"
+                                onclick={log_off}
+                            >
                                 {"Logout"}
                             </button>
                         </div>

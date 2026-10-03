@@ -155,7 +155,7 @@ impl NostrClient {
             }
     }
 
-    pub async fn login(&self, )-> Result<nostr_sdk::PublicKey, ClientError> {
+    pub async fn login(&self, ) -> Result<nostr_sdk::PublicKey, ClientError> {
         let signer = BrowserSigner::new()
             .map_err(|e| ClientError::SignerError(e))?;
         let pub_key = signer.get_public_key()
@@ -163,6 +163,10 @@ impl NostrClient {
             .map_err(|e| ClientError::SignerKeyError(e))?;
         self.client.set_signer(signer).await;
         Ok(pub_key)
+    }
+
+    pub async fn log_out(&self, ) {
+        self.client.unset_signer().await;
     }
 
     pub async fn get_profile(&self, pub_key: nostr_sdk::PublicKey) -> Result<Events, ClientError> {
