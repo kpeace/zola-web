@@ -10,6 +10,7 @@ pub struct LoginButtonProps {
 pub fn login_button(props: &LoginButtonProps) -> Html {
     let ctx = use_context::<BlogContext>()
         .expect("BlogContext not found");
+    let ctx_copy_npub_clone = ctx.clone();
 
     let menu_open = use_state(|| false);
 
@@ -18,6 +19,30 @@ pub fn login_button(props: &LoginButtonProps) -> Html {
 
         Callback::from(move |_| {
             menu_open.set(!*menu_open);
+        })
+    };
+
+    // copy the users npub
+    // this can be called only when we have a logged in user
+    let copy_npub = {
+        let ctx = ctx_copy_npub_clone.clone();
+        let menu_open = menu_open.clone();
+
+
+        Callback::from(move |_| {
+            let login_info = ctx.login_info.as_ref().unwrap();
+            let npub = login_info.pub_key.clone();
+            let menu_open = menu_open.clone();
+
+            wasm_bindgen_futures::spawn_local(async move {
+                if let Some(window) = web_sys::window() {
+                    let _ = wasm_bindgen_futures::JsFuture::from(
+                        window.navigator().clipboard().write_text(&npub)
+                    )
+                    .await;
+                    menu_open.set(!*menu_open);
+                }
+            });
         })
     };
 
@@ -103,7 +128,9 @@ pub fn login_button(props: &LoginButtonProps) -> Html {
                                 { &login_info.pub_key }
                             </div>
 
-                            <button class="profile-menu-item">
+                            <button class="profile-menu-item"
+                                onclick={copy_npub.clone()}
+                            >
                                 {"Copy npub"}
                             </button>
 
