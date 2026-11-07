@@ -1,7 +1,8 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 use crate::router::Route;
-use gloo_console::log;
+use gloo_console::{log, debug};
+
 use crate::services::blog_context::BlogContext;
 use crate::components::login_button::LoginButton;
 
@@ -25,12 +26,13 @@ pub fn layout(props: &LayoutProps) -> Html {
 
             wasm_bindgen_futures::spawn_local(async move {
                 if let Some(login_info) = ctx_clone.login().await {
-                    log!(format!("got login! npub {}", login_info.pub_key));
+                    debug!(format!("got login! npub {}", login_info.pub_key.to_hex()));
+
                     ctx_clone.login_info.set(Some(login_info));
                     if let Some(ctx_login_info) = &*ctx_clone.login_info {
-                        log!(format!(
+                        debug!(format!(
                             "login_info set to: {}",
-                            ctx_login_info.clone().pub_key
+                            ctx_login_info.clone().pub_key.to_hex()
                         ));
                     }
 

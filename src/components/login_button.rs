@@ -37,7 +37,7 @@ pub fn login_button(props: &LoginButtonProps) -> Html {
             wasm_bindgen_futures::spawn_local(async move {
                 if let Some(window) = web_sys::window() {
                     let _ = wasm_bindgen_futures::JsFuture::from(
-                        window.navigator().clipboard().write_text(&npub)
+                        window.navigator().clipboard().write_text(&npub.to_hex())
                     )
                     .await;
                     menu_open.set(!*menu_open);
@@ -125,7 +125,7 @@ pub fn login_button(props: &LoginButtonProps) -> Html {
                     html! {
                         <div class="profile-menu">
                             <div class="profile-menu-npub">
-                                { &login_info.pub_key }
+                                { &login_info.pub_key.to_hex() }
                             </div>
 
                             <button class="profile-menu-item"

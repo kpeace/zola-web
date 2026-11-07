@@ -22,7 +22,7 @@ pub fn logedin_user() -> Html {
             wasm_bindgen_futures::spawn_local(async move {
                 if let Some(window) = web_sys::window() {
                     let _ = wasm_bindgen_futures::JsFuture::from(
-                        window.navigator().clipboard().write_text(&npub)
+                        window.navigator().clipboard().write_text(&npub.to_hex())
                     )
                     .await;
                 }
@@ -78,7 +78,7 @@ pub fn logedin_user() -> Html {
 
                     // Neither name nor display name
                     (None, None) => html! {
-                        {&login_info.pub_key}
+                        {&login_info.pub_key.to_hex()}
                     },
                 }
             }

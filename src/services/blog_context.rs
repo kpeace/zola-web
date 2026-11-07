@@ -4,10 +4,14 @@ use crate::services::blog_post::BlogPost;
 use crate::nostr::client::NostrClient;
 use crate::services::config::AppConfig;
 use crate::services::login_info::LoginInfo;
+use crate::services::public_key::PublicKey;
 use std::collections::HashMap;
 use gloo_console::log;
 use yew::prelude::*;
 use crate::services::comment::Comment;
+use lru::LruCache;
+use std::num::NonZeroUsize;
+use std::cell::RefCell;
 
 pub const WINDOW_SIZE: usize = 5;
 
@@ -35,6 +39,7 @@ pub struct BlogContext {
     pub windows: WindowCache,
     pub config: Rc<AppConfig>,
     pub login_info: UseStateHandle<Option<LoginInfo>>,
+    pub profile_cache: Rc<RefCell<LruCache<PublicKey, LoginInfo>>>,
 }
 
 impl PartialEq for BlogContext{
@@ -44,6 +49,10 @@ impl PartialEq for BlogContext{
 }
 
 impl BlogContext {
+    pub fn create_profile_cache() -> Rc<RefCell<LruCache<PublicKey, LoginInfo>>> {
+        Rc::new(RefCell::new(LruCache::new(NonZeroUsize::new(256).unwrap())))
+    }
+
     // Curently we only support loading windows not unloading windows
     pub async fn load_window(&self, window_id: i32, ){
 
@@ -197,44 +206,49 @@ impl BlogContext {
 
     pub async fn login(&self,) -> Option<LoginInfo>{
         let pub_key = match self.client.login().await {
-            Ok(pub_key) => pub_key,
+            Ok(pub_key) => PublicKey::new(pub_key),
             Err(e) => {
                 log!(format!("Unable to login: {}", e));
                 return None
             },
         };
 
-        match self.client.get_profile(pub_key).await {
-            Ok(events) => {
-                if !events.is_empty() {
-                    match LoginInfo::from_event(events.first()?) {
-                        Ok(login_info) => {
-                            return Some(login_info)
-                        },
-                        Err(e) => {
-                            log!(format!("Unable to parse metadata event. Error: {}", e))
-                        }
-                    }
-                }
-            },
-            Err(e) => {
-                log!(format!("Unable to fetch metadata / profile infor for pub key: '{}'. Error: {}",
-                    pub_key,
-                    e));
-            },
-        };
 
-        Some(LoginInfo {
-            pub_key: pub_key.to_hex(),
-            ..Default::default()
-        })
-
-
+        match self.client.get_profile(pub_key.clone()).await {
+            Some(profile) => Some(profile),
+            None => Some(LoginInfo {
+                pub_key: pub_key.clone(),
+                ..Default::default()
+            })
+        }
     }
 
     pub async fn log_out(&self,) {
         self.client.log_out().await;
 
         self.login_info.set(None);
+    }
+
+    pub async fn get_profile(&self, pub_key: &PublicKey) -> LoginInfo{
+        if let Some(profile) = self.profile_cache.borrow_mut().get(&pub_key) {
+            log!(format!("Found in cache profile for: {}", pub_key.to_hex()));
+            return profile.clone();
+        }
+
+        match self.client.get_profile(pub_key.clone()).await {
+            Some(profile) => {
+                log!(format!("Retrived profile for pubkey {}: {:?}", pub_key.to_hex(), profile));
+                self.profile_cache.borrow_mut().put(pub_key.clone(), profile.clone());
+                profile
+            },
+            None => {
+                log!(format!("No profile found using default for: {}", pub_key.to_hex()));
+                LoginInfo {
+                    pub_key: pub_key.clone(),
+                    ..Default::default()
+                }
+            }
+        }
+
     }
 }

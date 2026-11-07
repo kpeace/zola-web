@@ -3,6 +3,8 @@ use nostr_browser_signer::BrowserSigner;
 use std::rc::Rc;
 use std::time::Duration;
 use crate::services::blog_post::BlogPost;
+use crate::services::public_key::PublicKey;
+use crate::services::login_info::LoginInfo;
 use crate::nostr::client_error::ClientError;
 use crate::services::blog_context::WINDOW_SIZE;
 use crate::services::comment::Comment;
@@ -26,7 +28,7 @@ pub type SharedClient = Rc<NostrClient>;
 
 impl NostrClient {
     pub fn new(public_key: &str) -> Result<Self, ClientError>  {
-        let id = PublicKey::parse(public_key).map_err(|e| ClientError::KeyError(e))?;
+        let id = nostr_sdk::PublicKey::parse(public_key).map_err(|e| ClientError::KeyError(e))?;
         let keys = Keys::generate();
 
         let client = Client::builder()
@@ -169,16 +171,36 @@ impl NostrClient {
         self.client.unset_signer().await;
     }
 
-    pub async fn get_profile(&self, pub_key: nostr_sdk::PublicKey) -> Result<Events, ClientError> {
+    pub async fn get_profile(&self, pub_key: PublicKey) -> Option<LoginInfo> {
+        let nostr_pub_key = pub_key.as_nostr();
         let filter = Filter::new()
             .kind(Kind::Metadata)
-            .author(pub_key);
+            .author(*nostr_pub_key);
 
-        let events = self.client.fetch_events(filter.clone(), Duration::from_secs(5))
-            .await
-            .map_err(|e| ClientError::EventLoadingError(e))?;
-
-        Ok(events)
+        match self.client.fetch_events(filter.clone(), Duration::from_secs(5)).await {
+            Ok(events) => {
+                if !events.is_empty() {
+                    match LoginInfo::from_event(events.first()?) {
+                        Ok(login_info) => {
+                            return Some(login_info)
+                        },
+                        Err(e) => {
+                            log!(format!("Unable to parse metadata event. Error: {}", e));
+                            None
+                        }
+                    }
+                } else {
+                    log!(format!("Found no profile events for pub_key {}", pub_key.to_hex()));
+                    None
+                }
+            },
+            Err(e) => {
+                log!(format!("Unable to fetch metadata / profile infor for pub key: '{}'. Error: {}",
+                    pub_key.to_hex(),
+                    e));
+                None
+            },
+        }
     }
 
     pub async fn publish_reply(&self, comment: Comment) -> Result<(),ClientError> {

@@ -73,7 +73,7 @@ pub fn post_page(props: &Props) -> Html {
 
                 <CommentSection
                     post_id={post.slug.clone()}
-                    post_author_id={post.post_author_id.clone()}
+                    post_author_pub_key={post.post_author_pub_key.clone()}
                     parent_id={post.slug.clone()}
                 />
             </div>

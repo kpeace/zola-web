@@ -1,6 +1,7 @@
 use nostr_sdk::Event;
 use crate::nostr::post_tags::PostTags;
 use crate::nostr::client_error::ClientError;
+use crate::services::public_key::PublicKey;
 use strip_markdown::strip_markdown;
 
 
@@ -12,7 +13,7 @@ pub struct BlogPost {
     pub excerpt: String,
     pub content: String,
     pub event_id: String,
-    pub post_author_id: String,
+    pub post_author_pub_key: PublicKey,
 }
 
 impl BlogPost {
@@ -41,7 +42,7 @@ impl BlogPost {
             excerpt: excerpt,
             content: e.content.clone(),
             event_id: e.id.to_hex(),
-            post_author_id: e.pubkey.to_hex(),
+            post_author_pub_key: PublicKey::new(e.pubkey),
         })
     }
 }

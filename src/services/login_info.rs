@@ -1,10 +1,11 @@
 use nostr_sdk::Event;
 use crate::nostr::client_error::ClientError;
-use serde::Deserialize;
+use serde::{Deserialize};
+use crate::services::public_key::PublicKey;
 
 #[derive(Clone, Debug, Default)]
 pub struct LoginInfo {
-    pub pub_key: String,
+    pub pub_key: PublicKey,
     pub name: Option<String>,
     pub display_name: Option<String>,
     pub about: Option<String>,
@@ -13,6 +14,7 @@ pub struct LoginInfo {
 
 #[derive(Deserialize)]
 struct Profile {
+
     name: Option<String>,
     display_name: Option<String>,
     about: Option<String>,
@@ -37,7 +39,7 @@ impl LoginInfo {
             .map_err(|e| ClientError::JsonParseError(e))?;
 
         Ok(Self {
-            pub_key: event.pubkey.to_string(),
+            pub_key: PublicKey::new(event.pubkey),
             name: profile.name,
             display_name: profile.display_name,
             about: profile.about,
@@ -46,11 +48,13 @@ impl LoginInfo {
     }
 
     pub fn short_pub_key(&self,) -> String {
-        if self.pub_key.len() <= 8 {
-            self.pub_key.to_string()
+        let pub_key_str = self.pub_key.to_hex();
+
+        if pub_key_str.len() <= 8 {
+            pub_key_str
         } else {
-            std::format!("{}...{}", &self.pub_key[..4], &self.pub_key[self.pub_key.len() - 4..])
+            std::format!("{}...{}", &pub_key_str[..4], &pub_key_str[pub_key_str.len() - 4..])
         }
-}
+    }
 
 }

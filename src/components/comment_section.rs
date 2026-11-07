@@ -4,11 +4,12 @@ use crate::components::comment_tree::CommentTree;
 use crate::services::blog_context::BlogContext;
 use crate::services::comment::CommentNode;
 use crate::services::comment::build_tree;
+use crate::services::public_key::PublicKey;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub post_id: String,
-    pub post_author_id: String,
+    pub post_author_pub_key: PublicKey,
     pub parent_id: String,
 }
 
@@ -22,17 +23,17 @@ pub fn comment_section(props: &Props) -> Html {
         let ctx = ctx.clone();
         let comments = comments.clone();
         let post_id = props.post_id.clone();
-        let post_author_id = props.post_author_id.clone();
+        let post_author_pub_key = props.post_author_pub_key.clone();
 
         Callback::from(move |_| {
             let ctx = ctx.clone();
             let comments = comments.clone();
             let post_id = post_id.clone();
-            let post_author_id = post_author_id.clone();
+            let post_author_pub_key = post_author_pub_key.clone();
 
             wasm_bindgen_futures::spawn_local(async move {
                 let comments_vec =
-                    ctx.get_post_comments(&post_id, &post_author_id).await;
+                    ctx.get_post_comments(&post_id, &post_author_pub_key.to_hex()).await;
 
                 comments.set(build_tree(comments_vec));
             });
@@ -43,7 +44,7 @@ pub fn comment_section(props: &Props) -> Html {
         let reload_comments = reload_comments.clone();
 
         use_effect_with(
-            (props.post_id.clone(), props.post_author_id.clone()),
+            (props.post_id.clone(), props.post_author_pub_key.clone()),
             move |_| {
                 reload_comments.emit(());
                 || ()
@@ -57,9 +58,9 @@ pub fn comment_section(props: &Props) -> Html {
 
             <CommentInput
                 post_id={props.post_id.clone()}
-                post_author_id={props.post_author_id.clone()}
+                post_author_pub_key={props.post_author_pub_key.clone()}
                 parent_id={props.parent_id.clone()}
-                parent_author_id={props.post_author_id.clone()}
+                parent_author_pub_key={props.post_author_pub_key.clone()}
                 on_comment_sent={reload_comments.clone()}
             />
 

@@ -29,6 +29,8 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
 
     let login_info = use_state(|| None::<LoginInfo>);
 
+    let profile_cache = BlogContext::create_profile_cache();
+
     // init client
     {
         let client = client.clone();
@@ -53,6 +55,7 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
         let windows = (*windows).clone();
         let config_opt = config_opt.clone();
         let login_info_clone = login_info.clone();
+        let profile_cache_clone = profile_cache.clone();
 
         use_effect_with(client.clone(), move |client_handle| {
             // extract + CLONE outside async
@@ -65,6 +68,7 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
                     windows: windows.clone(),
                     config: config.clone(),
                     login_info: login_info_clone.clone(),
+                    profile_cache: profile_cache_clone,
                 };
 
                 wasm_bindgen_futures::spawn_local(async move {
@@ -104,6 +108,7 @@ fn use_blog_context(config_opt: Option<Rc<AppConfig>>) -> Option<BlogContext> {
             windows: (*windows).clone(),
             config,
             login_info,
+            profile_cache,
         }),
         _ => None,
     }

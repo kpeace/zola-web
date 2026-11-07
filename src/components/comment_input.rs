@@ -1,14 +1,15 @@
 use yew::prelude::*;
 use crate::services::{blog_context::BlogContext, comment::Comment};
+use crate::services::public_key::PublicKey;
 use gloo_console::log;
 use crate::components::logedin_user::LogedinUser;
 
 #[derive(Properties, PartialEq)]
 pub struct InputProps {
     pub post_id: String,
-    pub post_author_id: String,
+    pub post_author_pub_key: PublicKey,
     pub parent_id: String,
-    pub parent_author_id: String,
+    pub parent_author_pub_key: PublicKey,
     pub on_comment_sent: Callback<()>,
 }
 
@@ -24,7 +25,6 @@ pub fn comment_input(props: &InputProps) -> Html {
 
     let ctx_chk_loggedin = ctx.clone();
     let is_loggedin_clone = is_loggedin.clone();
-    let ctx_clone = ctx.clone();
 
     // gets input into the text variable
     let oninput = {
@@ -41,9 +41,9 @@ pub fn comment_input(props: &InputProps) -> Html {
     let onclick = {
         //let content = text.clone().trim().to_string();
         let post_id = props.post_id.clone();
-        let post_author_id = props.post_author_id.clone();
+        let post_author_id = props.post_author_pub_key.clone();
         let parent_id = props.parent_id.clone();
-        let parent_author_id = props.parent_author_id.clone();
+        let parent_author_pub_key = props.parent_author_pub_key.clone();
 
         let sending = sending.clone();
         let error = error.clone();
@@ -52,9 +52,6 @@ pub fn comment_input(props: &InputProps) -> Html {
 
         Callback::from(move |_| {
             let content = (*text_for_click).trim().to_string();
-            //DEBUG
-            log!(format!("send was clicked, content: {};; post_id {}: ;; parent_id: {}",
-                content, post_id, parent_id));
 
             if content.is_empty() {
                 return;
@@ -65,7 +62,7 @@ pub fn comment_input(props: &InputProps) -> Html {
             let content_clone = content.clone();
             let post_id_clone = post_id.clone();
             let parent_id_clone = parent_id.clone();
-            let parent_author_id_clone = parent_author_id.clone();
+            let parent_author_pub_key_clone = parent_author_pub_key.clone();
             let post_author_clone = post_author_id.clone();
             let sending = sending.clone();
             let error = error.clone();
@@ -74,9 +71,9 @@ pub fn comment_input(props: &InputProps) -> Html {
 
             let comment = Comment {
                 parent_id: parent_id_clone,
-                parent_author_id: parent_author_id_clone,
+                parent_author_pub_key: parent_author_pub_key_clone,
                 root_slug: post_id_clone,
-                root_author_id: post_author_clone,
+                root_author_pub_key: post_author_clone,
                 content: content_clone,
                 ..Default::default()   // or manually fill other fields
             };
@@ -99,16 +96,11 @@ pub fn comment_input(props: &InputProps) -> Html {
 
 
     // disables send if user not logged in
-    wasm_bindgen_futures::spawn_local(async move {
-        is_loggedin_clone.set(ctx_chk_loggedin.is_loggedin().await);
+    use_effect_with((), move |_| {
+        wasm_bindgen_futures::spawn_local(async move {
+            is_loggedin_clone.set(ctx_chk_loggedin.is_loggedin().await);
+        });
     });
-
-    log!(
-    format!(
-        "CommentInput login_info: {:?}",
-        &*ctx_clone.login_info
-    )
-);
 
     html! {
         <div class="comment-input">

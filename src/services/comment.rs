@@ -1,20 +1,21 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, format};
 
 use nostr_sdk::{Event, Kind, Tag, EventBuilder};
 use crate::nostr::client_error::ClientError;
 use gloo_console::log;
 use serde::{Deserialize, Serialize};
+use crate::services::public_key::PublicKey;
 
 
-#[derive(Clone, PartialEq, Default, Serialize, Deserialize, )]
+#[derive(Clone, PartialEq, Default, Serialize, Deserialize, Debug, )]
 pub struct Comment {
     pub id: String,
     pub root_slug: String,
-    pub root_author_id: String,
+    pub root_author_pub_key: PublicKey,
     pub parent_id: String,
-    pub parent_author_id: String,
+    pub parent_author_pub_key: PublicKey,
     pub content: String,
-    pub comment_author: String,
+    pub comment_author_pub_key: PublicKey,
     pub created_at: u64,
 }
 
@@ -23,7 +24,7 @@ impl std::fmt::Display for Comment {
         std::write!(
             f,
             "Comment by {}: {}",
-            self.comment_author,
+            self.comment_author_pub_key.to_hex(),
             self.content
         )
     }
@@ -39,10 +40,9 @@ impl Comment {
     }
 
     pub fn to_event_builder(&self) -> Result<EventBuilder, ClientError> {
-
         let root_ref = format!(
             "30023:{}:{}",
-            self.root_author_id,
+            self.root_author_pub_key.to_hex(),
             self.root_slug
         );
 
@@ -54,9 +54,9 @@ impl Comment {
         let tags = vec![
             create_tag("A", &root_ref)?,
             create_tag("K", "30023")?,
-            create_tag("P", &self.root_author_id)?,
+            create_tag("P", &self.root_author_pub_key.to_hex())?,
             create_tag("e", &self.parent_id)?,
-            create_tag("p", &self.parent_author_id)?,
+            create_tag("p", &self.parent_author_pub_key.to_hex())?,
             create_tag("k", "1111")?,
         ];
 
@@ -66,6 +66,7 @@ impl Comment {
                 &self.content,
             )
             .tags(tags)
+            .allow_self_tagging()
         )
     }
 
@@ -92,32 +93,41 @@ impl Comment {
         let id = e.id.to_hex();
         let content = e.content.clone();
         let created_at = e.created_at;
-        let comment_author = e.pubkey.to_hex();
-        let mut root_slug: String  = String::new();
-        let mut root_author_id: String = String::new();
-        let mut parent_id: String = String::new();
-        let mut parent_author_id: String = String::new();
+        let comment_author_pub_key = PublicKey::new(e.pubkey);
+        let mut root_slug: Option<String> = None;
+        let mut root_author_pub_key: Option<PublicKey> = None;
+        let mut parent_id: Option<String> = None;
+        let mut parent_author_pub_key: Option<PublicKey> = None;
 
         for tag in e.tags.clone() {
             let values = tag.as_slice();
-            //DEBUG
-            log!(format!("parsing event 1111 with tag {:?}", values));
-
              match values {
                 [kind, value, ..] if kind == "A" => {
-                    root_slug = parse_a_tag(value)?;
+                    root_slug = Some(parse_a_tag(value)?);
                 },
                 [kind, value, ..] if kind == "P" => {
-                    root_author_id = parse_p_tag(value)?;
+                    root_author_pub_key = match PublicKey::from_str(value){
+                        Ok(parent_pub) => Some(parent_pub),
+                        Err(err) => {
+                            log!(format!("Error parsing root author pbulic key {:?}", err));
+                            None
+                        },
+                    }
                 },
                 [kind, value, ..] if kind == "a" => {
-                    parent_id = parse_a_tag(value)?;
+                    parent_id = Some(parse_a_tag(value)?);
                 },
                 [kind, value, ..] if kind == "e" => {
-                    parent_id = parse_e_tag(value)?;
+                    parent_id = Some(parse_e_tag(value)?);
                 },
                 [kind, value, ..] if kind == "p" => {
-                    parent_author_id = parse_p_tag(value)?;
+                    parent_author_pub_key = match PublicKey::from_str(value){
+                        Ok(parent_pub) => Some(parent_pub),
+                        Err(err) => {
+                            log!(format!("Error parsing parent author public key {:?}", err));
+                            None
+                        },
+                    }
                 },
                 [kind, value, ..] if kind == "K" => {
                     ()
@@ -148,14 +158,42 @@ impl Comment {
             }
         }
 
+        let root_slug = root_slug.ok_or_else(|| {
+            ClientError::TagFormatError(
+                "A".into(),
+                "Missing root address tag".into(),
+            )
+        })?;
+
+        let root_author_pub_key = root_author_pub_key.ok_or_else(|| {
+            ClientError::TagFormatError(
+                "P".into(),
+                "Missing root author public key tag".into(),
+            )
+        })?;
+
+        let parent_id = parent_id.ok_or_else(|| {
+            ClientError::TagFormatError(
+                "a/e".into(),
+                "Missing parent reference tag".into(),
+            )
+        })?;
+
+        let parent_author_pub_key = parent_author_pub_key.ok_or_else(|| {
+            ClientError::TagFormatError(
+                "p".into(),
+                "Missing parent author public key tag".into(),
+            )
+        })?;
+
         Ok(Comment {
                 id : id,
                 root_slug: root_slug,
-                root_author_id: root_author_id,
+                root_author_pub_key: root_author_pub_key,
                 parent_id: parent_id,
-                parent_author_id: parent_author_id,
+                parent_author_pub_key: parent_author_pub_key,
                 content: content,
-                comment_author: comment_author,
+                comment_author_pub_key: comment_author_pub_key,
                 created_at: created_at.as_secs(),
             }
         )
@@ -175,14 +213,6 @@ fn parse_a_tag(value: &str) -> Result<String, ClientError> {
     }
 
     Ok(String::from(value_vec[2]))
-}
-
-fn parse_p_tag(value: &str) -> Result<String, ClientError> {
-    if value.is_empty() {
-        Err(ClientError::TagFormatError(format!("P"), format!("value is empty")))
-    } else {
-        Ok(value.to_string())
-    }
 }
 
 fn parse_e_tag(value: &str) -> Result<String, ClientError> {
